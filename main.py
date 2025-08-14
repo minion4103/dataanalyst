@@ -81,10 +81,6 @@ ocr_api_key = os.getenv("OCR_API_KEY")
 OCR_API_URL = "https://api.ocr.space/parse/image"
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 gemini_api = os.getenv("gemini_api")
-horizon_api = os.getenv("horizon_api")
-gemini_api_2 = os.getenv("gemini_api_2")
-grok_api = os.getenv("grok_api")
-grok_fix_api = os.getenv("grok_fix_api")
 
 def make_json_serializable(obj):
     """Convert pandas/numpy objects to JSON-serializable formats"""
@@ -239,8 +235,6 @@ async def ping_gemini(question_text, relevant_context="", max_tries=3):
     while tries < max_tries:
         if tries % 2 != 0:
             api_key = gemini_api
-        else:
-            api_key = gemini_api_2
         try:
             print(f"gemini is running {tries + 1} try")
             headers = {
@@ -295,45 +289,12 @@ async def ping_chatgpt(question_text, relevant_context, max_tries=3):
             continue
 
 
-async def ping_horizon(question_text, relevant_context="", max_tries=3):
-    tries = 0
-    while tries < max_tries:
-        try:
-            print(f"horizon is running {tries + 1} try")
-            headers = {
-                "Authorization": f"Bearer {horizon_api}",
-                "Content-Type": "application/json"
-            }
-            payload = {
-                "model": "openrouter/horizon-beta",
-                "messages": [
-                    {"role": "system", "content": relevant_context},
-                    {"role": "user", "content": question_text}
-                ]
-            }
-            async with httpx.AsyncClient(timeout=120) as client:
-                response = await client.post(
-                    "https://openrouter.ai/api/v1/chat/completions",
-                    headers=headers,
-                    json=payload
-                )
-                response.raise_for_status()
-                return response.json()
-        except Exception as e:
-            print(f"Error during Horizon call: {e}")
-            tries += 1
-    return {"error": "Horizon failed after max retries"}
-
-
-
 async def ping_gemini_pro(question_text, relevant_context="", max_tries=3):
     """Call Gemini Pro API for code generation."""    
     tries = 0
     while tries < max_tries:
         if tries % 2 == 0:
             api_key = gemini_api
-        else:
-            api_key = gemini_api_2
         try:
             print(f"gemini pro is running {tries + 1} try")
             headers = {
